@@ -1,0 +1,10 @@
+.vercel
+.env*
+
+# 内部档案不进公开仓库
+README.md
+PRODUCT.md
+DESIGN.md
+.claude/
+.vercelignore
+.DS_Store

@@ -1,0 +1,64 @@
+{
+  "meta": {
+    "note": "内容簇定义（前台导航的货架）。卡片归属存在 tips.json 每张卡的 clusters 字段里（数组第一个=主簇），本文件只定义簇本身——单一数据源，避免两边对不上。",
+    "naming": "簇名走钩子风格（用户视角），不用学科名。order 为货架展示顺序，可随时调。"
+  },
+  "clusters": [
+    {
+      "id": "cognitive-traps",
+      "name": "你没那么理性",
+      "tagline": "大脑爱抄近道，这些思维陷阱天天在用你",
+      "icon": "ti-brain",
+      "order": 1
+    },
+    {
+      "id": "senses-tricks",
+      "name": "你的感官在骗你",
+      "tagline": "看见的、听到的、疼不疼，其实都是大脑说了算",
+      "icon": "ti-eye",
+      "order": 2
+    },
+    {
+      "id": "textbook-corrections",
+      "name": "连教科书都在改",
+      "tagline": "写进教材的经典结论，正被新证据重新检验",
+      "icon": "ti-book-2",
+      "order": 3
+    },
+    {
+      "id": "unreliable-memory",
+      "name": "记忆没你以为的可靠",
+      "tagline": "记忆不是录像，是每次回想都会重画一遍的画",
+      "icon": "ti-photo-off",
+      "order": 4
+    },
+    {
+      "id": "know-yourself",
+      "name": "你没那么了解自己",
+      "tagline": "心动可能是心跳，喜欢可能是奖励——情绪与动机的误读现场",
+      "icon": "ti-user-search",
+      "order": 5
+    },
+    {
+      "id": "pop-myths",
+      "name": "被传歪的心理学",
+      "tagline": "左右脑、10% 大脑、星座……流行说法逐个查验",
+      "icon": "ti-speakerphone",
+      "order": 6
+    },
+    {
+      "id": "learning-truth",
+      "name": "高效学习的真相",
+      "tagline": "别再傻读了——这些方法被实验反复验证过",
+      "icon": "ti-bulb",
+      "order": 7
+    },
+    {
+      "id": "baby-mind",
+      "name": "婴儿的内心世界",
+      "tagline": "人类的出厂设置，比你想象的强大",
+      "icon": "ti-baby-carriage",
+      "order": 8
+    }
+  ]
+}

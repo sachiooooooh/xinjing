@@ -1,0 +1,301 @@
+{
+  "meta": {
+    "subject": "普通心理学",
+    "source": "彭聃龄主编《普通心理学》第6版，北京师范大学出版社",
+    "note": "编/章/节级目录已由用户对照纸质书核对，status=verified。概念层 status=needs_review 表示概念内容表述待对照教材正文核对（结构已定，内容待审）。第六章为细颗粒度样板。",
+    "draftDate": "2026-06-11",
+    "lastUpdate": "2026-06-11"
+  },
+  "tree": [
+    {
+      "id": "part1",
+      "title": "第一编 绪论",
+      "type": "part",
+      "status": "verified",
+      "children": [
+        {
+          "id": "ch01",
+          "title": "第一章 心理学的研究对象和方法",
+          "type": "chapter",
+          "status": "verified",
+          "children": [
+            { "id": "ch01-s01", "title": "心理学是研究心理现象的科学", "type": "section", "status": "verified" },
+            { "id": "ch01-s02", "title": "心理学的任务", "type": "section", "status": "verified" },
+            { "id": "ch01-s03", "title": "心理学的研究方法", "type": "section", "status": "verified" },
+            { "id": "ch01-s04", "title": "心理学的过去和现在", "type": "section", "status": "verified" }
+          ]
+        },
+        {
+          "id": "ch02",
+          "title": "第二章 心理的神经生理机制",
+          "type": "chapter",
+          "status": "verified",
+          "children": [
+            { "id": "ch02-s01", "title": "神经系统的进化", "type": "section", "status": "verified" },
+            { "id": "ch02-s02", "title": "神经元", "type": "section", "status": "verified" },
+            { "id": "ch02-s03", "title": "神经系统", "type": "section", "status": "verified" },
+            { "id": "ch02-s04", "title": "脑功能的各种学说", "type": "section", "status": "verified" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "part2",
+      "title": "第二编 人的信息加工",
+      "type": "part",
+      "status": "verified",
+      "children": [
+        {
+          "id": "ch03",
+          "title": "第三章 感觉",
+          "type": "chapter",
+          "status": "verified",
+          "children": [
+            { "id": "ch03-s01", "title": "感觉的一般概念", "type": "section", "status": "verified" },
+            { "id": "ch03-s02", "title": "视觉", "type": "section", "status": "verified" },
+            { "id": "ch03-s03", "title": "听觉", "type": "section", "status": "verified" },
+            { "id": "ch03-s04", "title": "其他感觉", "type": "section", "status": "verified" }
+          ]
+        },
+        {
+          "id": "ch04",
+          "title": "第四章 知觉",
+          "type": "chapter",
+          "status": "verified",
+          "children": [
+            { "id": "ch04-s01", "title": "知觉的一般概念", "type": "section", "status": "verified" },
+            { "id": "ch04-s02", "title": "知觉的特性", "type": "section", "status": "verified" },
+            { "id": "ch04-s03", "title": "空间知觉", "type": "section", "status": "verified" },
+            { "id": "ch04-s04", "title": "时间知觉与运动知觉", "type": "section", "status": "verified" },
+            { "id": "ch04-s05", "title": "错觉", "type": "section", "status": "verified" }
+          ]
+        },
+        {
+          "id": "ch05",
+          "title": "第五章 意识和注意",
+          "type": "chapter",
+          "status": "verified",
+          "children": [
+            { "id": "ch05-s01", "title": "意识的一般问题", "type": "section", "status": "verified" },
+            { "id": "ch05-s02", "title": "几种不同的意识状态", "type": "section", "status": "verified" },
+            { "id": "ch05-s03", "title": "注意的一般概述", "type": "section", "status": "verified" },
+            { "id": "ch05-s04", "title": "注意的认知与神经机制", "type": "section", "status": "verified" }
+          ]
+        },
+        {
+          "id": "ch06",
+          "title": "第六章 记忆",
+          "type": "chapter",
+          "status": "verified",
+          "gridSample": true,
+          "children": [
+            {
+              "id": "ch06-s01",
+              "title": "记忆的一般概念",
+              "type": "section",
+              "status": "verified",
+              "children": [
+                { "id": "ch06-s01-c01", "title": "记忆的三个环节：编码、存储、提取", "type": "concept", "status": "needs_review", "seeAlso": [] },
+                { "id": "ch06-s01-c02", "title": "记忆的分类（按内容/按保持时间）", "type": "concept", "status": "needs_review", "seeAlso": [] },
+                { "id": "ch06-s01-c03", "title": "记忆的信息加工三级模型", "type": "concept", "status": "needs_review", "seeAlso": [] }
+              ]
+            },
+            {
+              "id": "ch06-s02",
+              "title": "记忆的神经生理机制",
+              "type": "section",
+              "status": "verified",
+              "children": [
+                { "id": "ch06-s02-c01", "title": "海马与记忆（H.M. 病例）", "type": "concept", "status": "needs_review", "seeAlso": ["ch02-s03"] },
+                { "id": "ch06-s02-c02", "title": "记忆没有单一脑中枢（定位之争）", "type": "concept", "status": "needs_review", "seeAlso": ["ch02-s04"] },
+                { "id": "ch06-s02-c03", "title": "长时程增强（LTP）与突触可塑性", "type": "concept", "status": "needs_review", "seeAlso": ["ch02-s02"] }
+              ]
+            },
+            {
+              "id": "ch06-s03",
+              "title": "感觉记忆",
+              "type": "section",
+              "status": "verified",
+              "children": [
+                { "id": "ch06-s03-c01", "title": "图像记忆与 Sperling 部分报告法", "type": "concept", "status": "needs_review", "seeAlso": ["ch03-s02"] },
+                { "id": "ch06-s03-c02", "title": "声像记忆", "type": "concept", "status": "needs_review", "seeAlso": ["ch03-s03"] },
+                { "id": "ch06-s03-c03", "title": "感觉记忆的特点：容量大、保持极短", "type": "concept", "status": "needs_review", "seeAlso": [] }
+              ]
+            },
+            {
+              "id": "ch06-s04",
+              "title": "短时记忆",
+              "type": "section",
+              "status": "verified",
+              "children": [
+                {
+                  "id": "ch06-s04-c01",
+                  "title": "短时记忆容量：7±2 还是 4±1",
+                  "type": "concept",
+                  "status": "needs_review",
+                  "seeAlso": [],
+                  "flags": ["controversy"],
+                  "controversyNote": "Miller (1956) 经典结论 7±2；Cowan (2001) 在排除组块后认为约 4±1。需核对第6版采用哪一版表述。"
+                },
+                { "id": "ch06-s04-c02", "title": "组块（chunking）", "type": "concept", "status": "needs_review", "seeAlso": [] },
+                { "id": "ch06-s04-c03", "title": "短时记忆的编码以听觉为主", "type": "concept", "status": "needs_review", "seeAlso": [] },
+                { "id": "ch06-s04-c04", "title": "复述：保持性复述 vs 精细复述", "type": "concept", "status": "needs_review", "seeAlso": [] },
+                { "id": "ch06-s04-c05", "title": "工作记忆模型（Baddeley）", "type": "concept", "status": "needs_review", "seeAlso": ["ch07-s05"] }
+              ]
+            },
+            {
+              "id": "ch06-s05",
+              "title": "长时记忆",
+              "type": "section",
+              "status": "verified",
+              "children": [
+                { "id": "ch06-s05-c01", "title": "长时记忆的编码方式（以意义编码为主）", "type": "concept", "status": "needs_review", "seeAlso": [] },
+                { "id": "ch06-s05-c02", "title": "艾宾浩斯遗忘曲线", "type": "concept", "status": "needs_review", "seeAlso": ["ch13-s01"] },
+                { "id": "ch06-s05-c03", "title": "系列位置效应（首因/近因）", "type": "concept", "status": "needs_review", "seeAlso": [] },
+                { "id": "ch06-s05-c04", "title": "情景记忆与语义记忆（Tulving）", "type": "concept", "status": "needs_review", "seeAlso": [] },
+                { "id": "ch06-s05-c05", "title": "遗忘理论：消退说 vs 干扰说", "type": "concept", "status": "needs_review", "seeAlso": [] },
+                { "id": "ch06-s05-c06", "title": "舌尖现象（TOT）", "type": "concept", "status": "needs_review", "seeAlso": ["ch08-s04"] },
+                { "id": "ch06-s05-c07", "title": "错误记忆与 DRM 范式", "type": "concept", "status": "needs_review", "seeAlso": [] }
+              ]
+            },
+            {
+              "id": "ch06-s06",
+              "title": "内隐记忆",
+              "type": "section",
+              "status": "verified",
+              "children": [
+                { "id": "ch06-s06-c01", "title": "内隐记忆 vs 外显记忆", "type": "concept", "status": "needs_review", "seeAlso": [] },
+                { "id": "ch06-s06-c02", "title": "启动效应（priming）", "type": "concept", "status": "needs_review", "seeAlso": [] },
+                { "id": "ch06-s06-c03", "title": "从遗忘症病人身上发现内隐记忆", "type": "concept", "status": "needs_review", "seeAlso": ["ch06-s02-c01"] }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "ch07",
+          "title": "第七章 思维",
+          "type": "chapter",
+          "status": "verified",
+          "children": [
+            { "id": "ch07-s01", "title": "思维的一般概念", "type": "section", "status": "verified" },
+            { "id": "ch07-s02", "title": "表象与想象", "type": "section", "status": "verified" },
+            { "id": "ch07-s03", "title": "概念", "type": "section", "status": "verified" },
+            { "id": "ch07-s04", "title": "推理", "type": "section", "status": "verified" },
+            { "id": "ch07-s05", "title": "问题解决", "type": "section", "status": "verified" },
+            { "id": "ch07-s06", "title": "决策", "type": "section", "status": "verified" }
+          ]
+        },
+        {
+          "id": "ch08",
+          "title": "第八章 语言",
+          "type": "chapter",
+          "status": "verified",
+          "children": [
+            { "id": "ch08-s01", "title": "语言的一般概念", "type": "section", "status": "verified" },
+            { "id": "ch08-s02", "title": "语言的神经生理机制", "type": "section", "status": "verified" },
+            { "id": "ch08-s03", "title": "语言理解", "type": "section", "status": "verified" },
+            { "id": "ch08-s04", "title": "语言的产生", "type": "section", "status": "verified" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "part3",
+      "title": "第三编 行为调节和控制",
+      "type": "part",
+      "status": "verified",
+      "children": [
+        {
+          "id": "ch09",
+          "title": "第九章 动机",
+          "type": "chapter",
+          "status": "verified",
+          "children": [
+            { "id": "ch09-s01", "title": "动机的一般概念", "type": "section", "status": "verified" },
+            { "id": "ch09-s02", "title": "动机的种类", "type": "section", "status": "verified" },
+            { "id": "ch09-s03", "title": "动机的理论", "type": "section", "status": "verified" },
+            { "id": "ch09-s04", "title": "意志行动", "type": "section", "status": "verified" }
+          ]
+        },
+        {
+          "id": "ch10",
+          "title": "第十章 情绪",
+          "type": "chapter",
+          "status": "verified",
+          "children": [
+            { "id": "ch10-s01", "title": "情绪的一般概念", "type": "section", "status": "verified" },
+            { "id": "ch10-s02", "title": "情绪与脑", "type": "section", "status": "verified" },
+            { "id": "ch10-s03", "title": "表情", "type": "section", "status": "verified" },
+            { "id": "ch10-s04", "title": "情绪理论", "type": "section", "status": "verified" },
+            { "id": "ch10-s05", "title": "情绪调节", "type": "section", "status": "verified" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "part4",
+      "title": "第四编 人的心理特性",
+      "type": "part",
+      "status": "verified",
+      "children": [
+        {
+          "id": "ch11",
+          "title": "第十一章 能力",
+          "type": "chapter",
+          "status": "verified",
+          "children": [
+            { "id": "ch11-s01", "title": "能力的一般概念", "type": "section", "status": "verified" },
+            { "id": "ch11-s02", "title": "能力的种类和结构", "type": "section", "status": "verified" },
+            { "id": "ch11-s03", "title": "能力的测量", "type": "section", "status": "verified" },
+            { "id": "ch11-s04", "title": "能力发展与个体差异", "type": "section", "status": "verified" }
+          ]
+        },
+        {
+          "id": "ch12",
+          "title": "第十二章 人格",
+          "type": "chapter",
+          "status": "verified",
+          "children": [
+            { "id": "ch12-s01", "title": "人格的一般概念", "type": "section", "status": "verified" },
+            { "id": "ch12-s02", "title": "人格理论", "type": "section", "status": "verified" },
+            { "id": "ch12-s03", "title": "认知风格", "type": "section", "status": "verified" },
+            { "id": "ch12-s04", "title": "人格测验", "type": "section", "status": "verified" },
+            { "id": "ch12-s05", "title": "人格成因", "type": "section", "status": "verified" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "part5",
+      "title": "第五编 活动与人的发展",
+      "type": "part",
+      "status": "verified",
+      "children": [
+        {
+          "id": "ch13",
+          "title": "第十三章 学习",
+          "type": "chapter",
+          "status": "verified",
+          "children": [
+            { "id": "ch13-s01", "title": "学习的一般概念", "type": "section", "status": "verified" },
+            { "id": "ch13-s02", "title": "学习理论", "type": "section", "status": "verified" },
+            { "id": "ch13-s03", "title": "动作学习", "type": "section", "status": "verified" }
+          ]
+        },
+        {
+          "id": "ch14",
+          "title": "第十四章 人生全程发展",
+          "type": "chapter",
+          "status": "verified",
+          "children": [
+            { "id": "ch14-s01", "title": "发展及其相关概念", "type": "section", "status": "verified" },
+            { "id": "ch14-s02", "title": "身体、动作与感知觉的发展", "type": "section", "status": "verified" },
+            { "id": "ch14-s03", "title": "语言与认知发展", "type": "section", "status": "verified" },
+            { "id": "ch14-s04", "title": "社会性发展", "type": "section", "status": "verified" },
+            { "id": "ch14-s05", "title": "成年以后的发展", "type": "section", "status": "verified" }
+          ]
+        }
+      ]
+    }
+  ]
+}
