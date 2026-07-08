@@ -200,15 +200,55 @@ function headerHTML(day) {
   return '<header class="header"><span class="seal">镜</span><span class="header__name">新镜</span>' + dayPart + '</header>';
 }
 
+/* ---------- 添加到主屏幕引导 ---------- */
+const ADDHOME_KEY = 'xinjing.addhome.dismissed';
+function isStandalone() {
+  return window.navigator.standalone === true ||
+    (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
+}
+function addHomeTip() {
+  const ua = navigator.userAgent;
+  const wechat = /micromessenger/i.test(ua);
+  const ios = /iphone|ipad|ipod/i.test(ua) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const android = /android/i.test(ua);
+  if (wechat && ios) return '点右上角 ··· → 选「在 Safari 中打开」，再点底部分享 → 「添加到主屏幕」。';
+  if (wechat && android) return '点右上角 ··· → 选「添加到桌面」，新镜就住进桌面了。';
+  if (ios) return '点底部的分享按钮 → 选「添加到主屏幕」，新镜就住进桌面了。';
+  if (android) return '点右上角菜单 ⋮ → 选「添加到主屏幕 / 安装」，新镜就住进桌面了。';
+  return '把本页加到主屏幕或收藏，明天更好找。';
+}
+function maybeAddHomeHint(root) {
+  if (isStandalone()) return;                       // 已在桌面全屏模式，不打扰
+  if (localStorage.getItem(ADDHOME_KEY)) return;    // 关过就不再提
+  const hint = el(
+    '<div class="addhome" role="note">' +
+      '<div class="addhome__body">' +
+        '<span class="addhome__title">想每天都找得到？把新镜放上桌面</span>' +
+        '<span class="addhome__tip">' + esc(addHomeTip()) + '</span>' +
+      '</div>' +
+      '<button class="addhome__close" aria-label="关闭提示">知道了</button>' +
+    '</div>'
+  );
+  hint.querySelector('.addhome__close').addEventListener('click', () => {
+    localStorage.setItem(ADDHOME_KEY, '1');
+    hint.style.height = hint.offsetHeight + 'px';
+    requestAnimationFrame(() => hint.classList.add('addhome--out'));
+    setTimeout(() => hint.remove(), 260);
+  });
+  root.appendChild(hint);
+}
+
 /* ---------- 视图：今日 ---------- */
 function viewToday(root) {
   const st = dailyState();
   root.appendChild(el(headerHTML(st.phase === 'fresh' ? st.day : P.dayIndex || null)));
+  maybeAddHomeHint(root);
 
   if (st.phase === 'all-done') {
     root.appendChild(el(
       '<div class="done-card enter"><div class="done-card__title">存货读完了</div>' +
-      '<div class="done-card__sub">45 张卡都在你的地图上了。<br>新的卡片正在路上——先去图谱看看你点亮的世界。</div></div>'
+      '<div class="done-card__sub">' + DAILY_ORDER.length + ' 张卡都在你的地图上了。<br>新的卡片正在路上——先去图谱看看你点亮的世界。</div></div>'
     ));
     return;
   }

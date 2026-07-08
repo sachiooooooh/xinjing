@@ -62,6 +62,34 @@ button { font-family: inherit; }
 }
 .header__day b { font-family: var(--font-num); font-weight: 700; color: var(--accent); font-variant-numeric: tabular-nums; }
 
+/* ---------- 添加到主屏幕引导 ---------- */
+.addhome {
+  display: flex; align-items: flex-start; gap: 12px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--border-radius-md, 12px); border-radius: 12px;
+  padding: 12px 14px; margin: 14px 0 0;
+  overflow: hidden;
+  animation: fade-up 0.45s var(--ease-out-soft) both;
+}
+.addhome__body { display: flex; flex-direction: column; gap: 3px; flex: 1; min-width: 0; }
+.addhome__title { font-size: 13.5px; font-weight: 700; color: var(--text); }
+.addhome__tip { font-size: 12.5px; color: var(--text-secondary); line-height: 1.6; }
+.addhome__close {
+  flex-shrink: 0; align-self: center;
+  background: transparent; border: 1px solid var(--border);
+  border-radius: 10px; padding: 6px 12px;
+  font-size: 12.5px; color: var(--text-tertiary); cursor: pointer;
+  transition: border-color 0.2s ease, color 0.2s ease;
+}
+.addhome__close:active { transform: scale(0.96); }
+.addhome__close:focus-visible { outline: 2px solid var(--accent-bright); outline-offset: 2px; }
+@media (hover: hover) { .addhome__close:hover { border-color: var(--border-hover); color: var(--text-secondary); } }
+.addhome--out {
+  height: 0 !important; padding-top: 0; padding-bottom: 0; margin-top: 0;
+  opacity: 0; border-width: 0;
+  transition: height 0.25s var(--ease-out-soft), opacity 0.2s ease, padding 0.25s ease, margin 0.25s ease;
+}
+
 .page-title { font-size: 20px; font-weight: 700; line-height: 1.4; margin: 20px 0 4px; }
 .page-sub   { font-size: 13px; color: var(--text-tertiary); margin: 0 0 16px; }
 
