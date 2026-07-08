@@ -144,6 +144,21 @@ button { font-family: inherit; }
   .btn-primary:not(.is-lit):hover { background: #000; }
 }
 
+/* 未读态 CTA 吸底：核心动作永远可见（真机反馈：按钮沉在首屏下无人知晓） */
+.cta-wrap {
+  position: fixed; left: 50%; transform: translateX(-50%);
+  bottom: calc(62px + env(safe-area-inset-bottom) + 12px);
+  width: calc(100% - 40px); max-width: 440px;
+  z-index: 40;
+}
+.cta-wrap .btn-primary { margin-top: 0; box-shadow: 0 8px 24px rgba(0,0,0,0.10); }
+.cta-wrap .lit-note {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; padding: 10px 14px; margin-top: 10px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+}
+.cta-spacer { height: 88px; }
+
 .btn-ghost {
   display: inline-flex; align-items: center; justify-content: center;
   min-height: 44px; padding: 0 18px;

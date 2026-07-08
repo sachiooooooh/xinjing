@@ -205,10 +205,15 @@ function viewToday(root) {
   const isDone = st.phase === 'done-today';
   const btn = el('<button class="btn-primary enter-d1' + (isDone ? ' is-lit' : '') + '" id="light-btn">' +
     (isDone ? '已点亮 · 明天见' : '读完了，点亮它') + '</button>');
-  if (isDone) btn.disabled = false;
-  root.appendChild(btn);
 
-  if (!isDone) {
+  if (isDone) {
+    root.appendChild(btn); // 已读态：安静地留在文档流里
+  } else {
+    // 未读态：CTA 吸底，永远可见；正文底部加占位防遮挡
+    root.appendChild(el('<div class="cta-spacer"></div>'));
+    const wrap = el('<div class="cta-wrap"></div>');
+    wrap.appendChild(btn);
+    root.appendChild(wrap);
     btn.addEventListener('click', () => runLanding(tip, card, btn), { once: true });
   }
 }
@@ -234,7 +239,8 @@ function runLanding(tip, cardEl, btnEl) {
   setTimeout(() => { btnEl.style.transform = ''; }, 150);
 
   // 100ms 卡片收缩为一点
-  setTimeout(() => { cardEl.classList.add('card-collapsing'); btnEl.style.opacity = '0'; }, 100);
+  const btnHolder = btnEl.closest('.cta-wrap') || btnEl;
+  setTimeout(() => { cardEl.classList.add('card-collapsing'); btnHolder.style.opacity = '0'; }, 100);
 
   // 300ms 浮起迷你地图面板（目标节点未亮）
   setTimeout(() => { showLandPanel(ch, targetSec, stats, false); }, 300);
@@ -285,7 +291,10 @@ function finishLanding(ch, targetSec, stats, cardEl, btnEl) {
     cardEl.parentNode.insertBefore(echo, cardEl);
     cardEl.style.display = 'none';
   }
-  if (btnEl) btnEl.style.display = 'none';
+  if (btnEl) {
+    const holder = btnEl.closest('.cta-wrap') || btnEl;
+    holder.style.display = 'none';
+  }
 }
 
 function showLandPanel(ch, targetSec, stats, staticResult) {
@@ -388,9 +397,14 @@ function viewTip(root, tipId, fromCluster) {
 
   const read = P.readTips.includes(tip.id);
   const btn = el('<button class="btn-primary enter-d1' + (read ? ' is-lit' : '') + '">' + (read ? '已点亮' : '读完了，点亮它') + '</button>');
-  root.appendChild(btn);
 
-  if (!read) {
+  if (read) {
+    root.appendChild(btn); // 已读态回归文档流
+  } else {
+    root.appendChild(el('<div class="cta-spacer"></div>'));
+    const wrap = el('<div class="cta-wrap"></div>');
+    wrap.appendChild(btn);
+    root.appendChild(wrap);
     btn.addEventListener('click', () => {
       lightTip(tip);
       updateTabBadge();
@@ -399,7 +413,7 @@ function viewTip(root, tipId, fromCluster) {
       const ch = chapterOfNode(tip.nodeId);
       if (ch) {
         const stats = chapterStats(ch);
-        root.appendChild(el('<p class="lit-note">「' + esc(chapterShortName(ch.title)) + '」又亮了一格 · <b>' + stats.pct + '%</b></p>'));
+        wrap.appendChild(el('<p class="lit-note">「' + esc(chapterShortName(ch.title)) + '」又亮了一格 · <b>' + stats.pct + '%</b></p>'));
       }
     }, { once: true });
   }
