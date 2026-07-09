@@ -71,6 +71,13 @@ const DAILY_ORDER = [
 const STORE_KEY = 'xinjing.progress';
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+/* 埋点封装：统计脚本没加载/被拦截时静默跳过，绝不影响产品 */
+function track(category, action, label, value) {
+  try {
+    if (window._hmt) window._hmt.push(['_trackEvent', category, action, label, value]);
+  } catch (e) { /* 忽略 */ }
+}
+
 /* ---------- 数据与状态 ---------- */
 let DB = { tips: [], tipsById: {}, clusters: [], tree: [], chapters: [], sectionsById: {} };
 let P = null; // progress
@@ -161,6 +168,7 @@ function consumeDaily(tip) {
   P.dayIndex += 1;
   P.lastDailyDate = todayStr();
   saveProgress();
+  track('daily', 'light', tip.id, P.dayIndex); // 第 N 天的正餐卡被点亮
 }
 
 /* ---------- 工具 ---------- */
@@ -380,7 +388,7 @@ function showLandPanel(ch, targetSec, stats, staticResult) {
   }
   panel.addEventListener('click', e => {
     const act = e.target.getAttribute && e.target.getAttribute('data-act');
-    if (act === 'map') { removeLandPanel(); location.hash = '#/map'; }
+    if (act === 'map') { track('map', 'open', 'landing'); removeLandPanel(); location.hash = '#/map'; }
     if (act === 'close') { removeLandPanel(); render(); }
   });
 }
@@ -462,6 +470,7 @@ function viewTip(root, tipId, fromCluster) {
     root.appendChild(wrap);
     btn.addEventListener('click', () => {
       lightTip(tip);
+      track('browse', 'light', tip.id); // 逛逛里的浏览点亮
       updateTabBadge();
       btn.classList.add('is-lit');
       btn.textContent = '已点亮';
@@ -524,7 +533,10 @@ function buildTabbar() {
   const bar = el('<nav class="tabbar" aria-label="主导航"></nav>');
   for (const t of TABS) {
     const item = el('<button class="tabbar__item" data-tab="' + t.id + '" aria-label="' + t.name + '">' + t.icon + '<span>' + t.name + '</span></button>');
-    item.addEventListener('click', () => { location.hash = t.hash; });
+    item.addEventListener('click', () => {
+      if (t.id === 'map') track('map', 'open', 'tab'); // 主动打开图谱：簇进树留的核心验证指标
+      location.hash = t.hash;
+    });
     bar.appendChild(item);
   }
   document.body.appendChild(bar);
