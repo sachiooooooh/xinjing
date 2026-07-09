@@ -532,41 +532,113 @@ function viewMap(root) {
 }
 
 /* ---------- 进度备份：导出/导入（换设备、重装图标前先导出） ---------- */
-function exportProgress() {
-  const payload = JSON.stringify(P);
-  const input = window.prompt('把下面这段文字整段复制，存到备忘录或任何地方——以后导入时粘贴回来即可：', payload);
-  track('backup', 'export', '', P.litNodes.length);
-  return input;
+function removeBackupPanel() {
+  const p = document.querySelector('.backup-panel');
+  if (p) { p.classList.remove('is-open'); setTimeout(() => p.remove(), 300); }
 }
+
+function copyText(text, onDone) {
+  // 优先用现代剪贴板 API（HTTPS + 用户手势下可用），失败则退回 execCommand
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(() => onDone(true)).catch(() => {
+      onDone(fallbackCopy(text));
+    });
+  } else {
+    onDone(fallbackCopy(text));
+  }
+}
+function fallbackCopy(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.focus(); ta.select();
+  let ok = false;
+  try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+  ta.remove();
+  return ok;
+}
+
+function exportProgress() {
+  removeBackupPanel();
+  const payload = JSON.stringify(P);
+  const panel = el(
+    '<div class="backup-panel" role="dialog" aria-label="导出进度">' +
+      '<div class="backup-panel__title">导出进度</div>' +
+      '<p class="backup-panel__hint">复制这段文字，存到备忘录或任何地方。以后在「导入进度」里粘贴回来即可恢复。</p>' +
+      '<textarea class="backup-panel__ta" readonly></textarea>' +
+      '<div class="backup-panel__actions">' +
+        '<button class="btn-primary" data-act="copy" style="margin-top:0;flex:1.4;">一键复制</button>' +
+        '<button class="btn-ghost" data-act="close" style="flex:1;">关闭</button>' +
+      '</div>' +
+    '</div>'
+  );
+  panel.querySelector('.backup-panel__ta').value = payload;
+  document.body.appendChild(panel);
+  requestAnimationFrame(() => panel.classList.add('is-open'));
+
+  const copyBtn = panel.querySelector('[data-act="copy"]');
+  copyBtn.addEventListener('click', () => {
+    copyText(payload, ok => {
+      copyBtn.textContent = ok ? '已复制 ✓' : '复制失败，请长按文字手动复制';
+      if (ok) copyBtn.classList.add('is-lit');
+    });
+    track('backup', 'export', '', P.litNodes.length);
+  });
+  panel.querySelector('[data-act="close"]').addEventListener('click', removeBackupPanel);
+  // 点文本框也全选，双保险
+  panel.querySelector('.backup-panel__ta').addEventListener('click', e => e.target.select());
+}
+
 function importProgress() {
-  const raw = window.prompt('粘贴之前导出的那段文字：', '');
-  if (!raw) return;
-  let parsed;
-  try {
-    parsed = JSON.parse(raw);
-  } catch (e) {
-    window.alert('这段文字读不出来——请确认完整复制了导出的内容，没有多余的换行或截断。');
-    return;
-  }
-  if (!parsed || !Array.isArray(parsed.litNodes) || !Array.isArray(parsed.readTips) || typeof parsed.dayIndex !== 'number') {
-    window.alert('内容格式不对，不像是新镜导出的进度——请检查是不是复制全了。');
-    return;
-  }
-  const confirmMsg = '将恢复到：第 ' + parsed.dayIndex + ' 天 · 已点亮 ' + parsed.litNodes.length + ' 个知识点。\n\n这会覆盖当前设备上的进度，确定吗？';
-  if (!window.confirm(confirmMsg)) return;
-  P = {
-    version: 1,
-    litNodes: parsed.litNodes,
-    readTips: parsed.readTips,
-    dayIndex: parsed.dayIndex,
-    lastDailyDate: parsed.lastDailyDate || null,
-    firstSeen: parsed.firstSeen || todayStr(),
-    lastSeen: todayStr()
-  };
-  saveProgress();
-  track('backup', 'import', '', P.litNodes.length);
-  window.alert('已恢复。');
-  render();
+  removeBackupPanel();
+  const panel = el(
+    '<div class="backup-panel" role="dialog" aria-label="导入进度">' +
+      '<div class="backup-panel__title">导入进度</div>' +
+      '<p class="backup-panel__hint">把之前导出的那段文字粘贴到下面：</p>' +
+      '<textarea class="backup-panel__ta" placeholder="粘贴到这里…"></textarea>' +
+      '<p class="backup-panel__err" hidden></p>' +
+      '<div class="backup-panel__actions">' +
+        '<button class="btn-primary" data-act="restore" style="margin-top:0;flex:1.4;">恢复</button>' +
+        '<button class="btn-ghost" data-act="close" style="flex:1;">取消</button>' +
+      '</div>' +
+    '</div>'
+  );
+  document.body.appendChild(panel);
+  requestAnimationFrame(() => panel.classList.add('is-open'));
+
+  const ta = panel.querySelector('.backup-panel__ta');
+  const err = panel.querySelector('.backup-panel__err');
+  const showErr = msg => { err.textContent = msg; err.hidden = false; };
+
+  panel.querySelector('[data-act="restore"]').addEventListener('click', () => {
+    const raw = ta.value.trim();
+    if (!raw) { showErr('还没有粘贴内容。'); return; }
+    let parsed;
+    try { parsed = JSON.parse(raw); } catch (e) {
+      showErr('这段文字读不出来——请确认完整复制了导出的内容，没有多余的换行或截断。');
+      return;
+    }
+    if (!parsed || !Array.isArray(parsed.litNodes) || !Array.isArray(parsed.readTips) || typeof parsed.dayIndex !== 'number') {
+      showErr('内容格式不对，不像是新镜导出的进度——请检查是不是复制全了。');
+      return;
+    }
+    const confirmMsg = '将恢复到：第 ' + parsed.dayIndex + ' 天 · 已点亮 ' + parsed.litNodes.length + ' 个知识点。\n\n这会覆盖当前设备上的进度，确定吗？';
+    if (!window.confirm(confirmMsg)) return;
+    P = {
+      version: 1,
+      litNodes: parsed.litNodes,
+      readTips: parsed.readTips,
+      dayIndex: parsed.dayIndex,
+      lastDailyDate: parsed.lastDailyDate || null,
+      firstSeen: parsed.firstSeen || todayStr(),
+      lastSeen: todayStr()
+    };
+    saveProgress();
+    track('backup', 'import', '', P.litNodes.length);
+    removeBackupPanel();
+    render();
+  });
+  panel.querySelector('[data-act="close"]').addEventListener('click', removeBackupPanel);
 }
 
 /* ---------- 底部导航 ---------- */
