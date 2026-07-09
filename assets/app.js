@@ -518,6 +518,55 @@ function viewMap(root) {
   if (g.lit === 0) {
     root.appendChild(el('<p class="map-empty">地图还没亮——从今天这张开始。</p>'));
   }
+
+  root.appendChild(el('<div class="map-part" style="margin-top:32px;">备份</div>'));
+  const backupRow = el('<div style="display:flex;gap:10px;margin-top:8px;"></div>');
+  const exportBtn = el('<button class="btn-ghost" style="flex:1;">导出进度</button>');
+  const importBtn = el('<button class="btn-ghost" style="flex:1;">导入进度</button>');
+  exportBtn.addEventListener('click', exportProgress);
+  importBtn.addEventListener('click', () => { importProgress(); });
+  backupRow.appendChild(exportBtn);
+  backupRow.appendChild(importBtn);
+  root.appendChild(backupRow);
+  root.appendChild(el('<p style="font-size:12px;color:var(--text-tertiary);margin-top:8px;line-height:1.6;">换设备、重新添加到主屏幕前，先导出一份存到备忘录里。</p>'));
+}
+
+/* ---------- 进度备份：导出/导入（换设备、重装图标前先导出） ---------- */
+function exportProgress() {
+  const payload = JSON.stringify(P);
+  const input = window.prompt('把下面这段文字整段复制，存到备忘录或任何地方——以后导入时粘贴回来即可：', payload);
+  track('backup', 'export', '', P.litNodes.length);
+  return input;
+}
+function importProgress() {
+  const raw = window.prompt('粘贴之前导出的那段文字：', '');
+  if (!raw) return;
+  let parsed;
+  try {
+    parsed = JSON.parse(raw);
+  } catch (e) {
+    window.alert('这段文字读不出来——请确认完整复制了导出的内容，没有多余的换行或截断。');
+    return;
+  }
+  if (!parsed || !Array.isArray(parsed.litNodes) || !Array.isArray(parsed.readTips) || typeof parsed.dayIndex !== 'number') {
+    window.alert('内容格式不对，不像是新镜导出的进度——请检查是不是复制全了。');
+    return;
+  }
+  const confirmMsg = '将恢复到：第 ' + parsed.dayIndex + ' 天 · 已点亮 ' + parsed.litNodes.length + ' 个知识点。\n\n这会覆盖当前设备上的进度，确定吗？';
+  if (!window.confirm(confirmMsg)) return;
+  P = {
+    version: 1,
+    litNodes: parsed.litNodes,
+    readTips: parsed.readTips,
+    dayIndex: parsed.dayIndex,
+    lastDailyDate: parsed.lastDailyDate || null,
+    firstSeen: parsed.firstSeen || todayStr(),
+    lastSeen: todayStr()
+  };
+  saveProgress();
+  track('backup', 'import', '', P.litNodes.length);
+  window.alert('已恢复。');
+  render();
 }
 
 /* ---------- 底部导航 ---------- */
