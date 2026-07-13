@@ -334,6 +334,18 @@ button { font-family: inherit; }
 }
 .share-panel__tip b { color: var(--text); font-weight: 700; }
 
+/* ---------- Toast ---------- */
+.toast {
+  position: fixed; left: 50%; bottom: 96px; z-index: 80;
+  transform: translateX(-50%) translateY(8px);
+  background: var(--text); color: var(--surface);
+  font-size: 14px; font-weight: 500;
+  padding: 10px 20px; border-radius: 12px;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.25s var(--ease-out-soft), transform 0.25s var(--ease-out-soft);
+}
+.toast.is-on { opacity: 1; transform: translateX(-50%) translateY(0); }
+
 /* ---------- 备份面板（导出/导入进度） ---------- */
 .backup-panel {
   position: fixed; left: 50%; transform: translateX(-50%) translateY(24px);

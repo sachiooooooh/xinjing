@@ -397,6 +397,16 @@ async function buildCardImage(tip, dayLabel) {
   return c;
 }
 
+/* ---------- Toast：轻量反馈，自动消失 ---------- */
+function showToast(msg) {
+  const old = document.querySelector('.toast');
+  if (old) old.remove();
+  const t = el('<div class="toast" role="status">' + esc(msg) + '</div>');
+  document.body.appendChild(t);
+  requestAnimationFrame(() => t.classList.add('is-on'));
+  setTimeout(() => { t.classList.remove('is-on'); setTimeout(() => t.remove(), 300); }, 1800);
+}
+
 function removeSharePanel() {
   const p = document.querySelector('.share-panel');
   if (p) { p.classList.remove('is-open'); setTimeout(() => p.remove(), 300); }
@@ -422,20 +432,50 @@ async function showSharePanel(tip, dayLabel) {
 
   try {
     const canvas = await buildCardImage(tip, dayLabel);
-    const dataUrl = canvas.toDataURL('image/png');
+    const blob = await new Promise((ok, bad) => canvas.toBlob(b => b ? ok(b) : bad(new Error('toBlob failed')), 'image/png'));
+    const fileName = 'xinjing-' + tip.id + '.png';
+    const file = new File([blob], fileName, { type: 'image/png' });
+    const blobUrl = URL.createObjectURL(blob);
+
     const img = el('<img class="share-panel__img" alt="卡片分享图" />');
-    img.src = dataUrl;
+    img.src = blobUrl;
     panel.querySelector('.share-panel__imgwrap').appendChild(img);
     panel.querySelector('.share-panel__generating').hidden = true;
-    panel.querySelector('.share-panel__tip').hidden = false;
-    const dl = panel.querySelector('[data-act="download"]');
-    dl.hidden = false;
-    dl.addEventListener('click', () => {
-      const a = document.createElement('a');
-      a.href = dataUrl;
-      a.download = 'xinjing-' + tip.id + '.png';
-      document.body.appendChild(a); a.click(); a.remove();
-    });
+
+    const hint = panel.querySelector('.share-panel__tip');
+    const actionBtn = panel.querySelector('[data-act="download"]');
+    const isWeChat = /micromessenger/i.test(navigator.userAgent);
+    const canShareFile = !isWeChat && typeof navigator.share === 'function' &&
+      navigator.canShare && navigator.canShare({ files: [file] });
+
+    if (canShareFile) {
+      // 手机：调系统分享面板（里面有"存储图像"一键进相册、发微信等）
+      actionBtn.hidden = false;
+      actionBtn.textContent = '保存 / 分享';
+      actionBtn.addEventListener('click', () => {
+        navigator.share({ files: [file], title: tip.title })
+          .then(() => showToast('已分享 ✓'))
+          .catch(err => { if (err && err.name !== 'AbortError') showToast('没调起分享——长按图片也能保存'); });
+      });
+      hint.innerHTML = '面板里选「<b>存储图像</b>」即存入相册；也可以直接长按图片保存。';
+      hint.hidden = false;
+    } else if (isWeChat) {
+      // 微信内：无下载无分享 API，长按是唯一正道
+      hint.innerHTML = '<b>长按图片</b>即可保存到相册，或发给朋友。';
+      hint.hidden = false;
+    } else {
+      // 桌面：正经下载
+      actionBtn.hidden = false;
+      actionBtn.addEventListener('click', () => {
+        const a = document.createElement('a');
+        a.href = blobUrl;
+        a.download = fileName;
+        document.body.appendChild(a); a.click(); a.remove();
+        showToast('已下载 ✓');
+      });
+      hint.innerHTML = '手机上打开的话，<b>长按图片</b>即可保存到相册。';
+      hint.hidden = false;
+    }
     track('share', 'save', tip.id);
   } catch (e) {
     panel.querySelector('.share-panel__generating').textContent = '图片生成失败了——刷新页面再试一次。';
