@@ -247,6 +247,208 @@ function maybeAddHomeHint(root) {
   root.appendChild(hint);
 }
 
+/* ---------- 分享图：把卡片画成 3:4 图片（canvas，零依赖） ---------- */
+const SHARE_W = 1080;
+const SHARE_PAD = 96;
+const SITE_URL = 'sachiooooooh.github.io/xinjing';
+const CLOSE_PUNCT = '，。、；：？！）』」》…"’”';
+
+/* 逐字换行（中文可断任意处；行首不落收尾标点） */
+function wrapCJK(ctx, text, maxWidth) {
+  const lines = [];
+  let line = '';
+  for (const ch of text) {
+    if (ch === '\n') { lines.push(line); line = ''; continue; }
+    const test = line + ch;
+    if (ctx.measureText(test).width > maxWidth && line) {
+      if (CLOSE_PUNCT.includes(ch)) { lines.push(line + ch); line = ''; }
+      else { lines.push(line); line = ch; }
+    } else {
+      line = test;
+    }
+  }
+  if (line) lines.push(line);
+  return lines;
+}
+
+function roundRectPath(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+
+async function buildCardImage(tip, dayLabel) {
+  await Promise.all([
+    document.fonts.load('700 62px "Noto Serif SC"'),
+    document.fonts.load('400 42px "Noto Serif SC"'),
+    document.fonts.load('700 40px "Noto Serif SC"'),
+    document.fonts.load('500 30px "Noto Sans SC"'),
+    document.fonts.load('400 28px "Noto Sans SC"')
+  ]);
+
+  const W = SHARE_W, PAD = SHARE_PAD, CW = W - PAD * 2;
+  const c = document.createElement('canvas');
+  const x = c.getContext('2d');
+
+  // 先量后画：算标题/正文行数，定画布高度
+  x.font = '700 62px "Noto Serif SC"';
+  const titleLines = wrapCJK(x, tip.title, CW);
+  x.font = '400 42px "Noto Serif SC"';
+  const bodyLines = wrapCJK(x, tip.text, CW);
+  const src = tip.source || {};
+  const srcText = (src.book || '') + ' · ' + (src.chapter || '');
+  x.font = '400 28px "Noto Sans SC"';
+  const srcLines = wrapCJK(x, srcText, CW);
+
+  const TITLE_LH = 92, BODY_LH = 80, SRC_LH = 44;
+  const headerH = 200;                       // 顶部：印章+品牌+日标
+  const pillH = tip.hookType ? 92 : 0;       // 钩子标签
+  const titleH = titleLines.length * TITLE_LH + 40;
+  const bodyH = bodyLines.length * BODY_LH + 40;
+  const srcH = srcLines.length * SRC_LH + 60; // 含分隔线
+  const footerH = 140;
+  const contentH = PAD + headerH + pillH + titleH + bodyH + srcH + footerH + PAD;
+  const H = Math.max(1440, contentH);        // 至少 3:4
+
+  c.width = W; c.height = H;
+
+  // 背景
+  x.fillStyle = '#FBFAF7';
+  x.fillRect(0, 0, W, H);
+
+  // 顶部：方印「镜」+ 品牌名 + 右侧日标/金点
+  let cy = PAD;
+  const sealS = 96;
+  roundRectPath(x, PAD, cy, sealS, sealS, 20);
+  x.fillStyle = '#1A1A1A'; x.fill();
+  x.fillStyle = '#FFFFFF';
+  x.font = '700 54px "Noto Serif SC"';
+  x.textAlign = 'center'; x.textBaseline = 'middle';
+  x.fillText('镜', PAD + sealS / 2, cy + sealS / 2 + 4);
+
+  x.textAlign = 'left';
+  x.fillStyle = '#1A1A1A';
+  x.font = '500 44px "Noto Sans SC"';
+  x.fillText('新镜', PAD + sealS + 32, cy + sealS / 2 + 2);
+
+  x.beginPath();
+  x.arc(W - PAD - 14, cy + 20, 14, 0, Math.PI * 2);
+  x.fillStyle = '#F59E0B'; x.fill();
+  if (dayLabel) {
+    x.textAlign = 'right';
+    x.fillStyle = '#9A9A97';
+    x.font = '400 32px "Noto Sans SC"';
+    x.fillText(dayLabel, W - PAD - 44, cy + sealS / 2 + 2);
+    x.textAlign = 'left';
+  }
+  cy += headerH;
+
+  // 钩子标签
+  if (tip.hookType) {
+    x.font = '400 30px "Noto Sans SC"';
+    const tw = x.measureText(tip.hookType).width;
+    roundRectPath(x, PAD, cy, tw + 48, 60, 14);
+    x.fillStyle = '#F5F3EE'; x.fill();
+    x.fillStyle = '#5C5C5A';
+    x.textBaseline = 'middle';
+    x.fillText(tip.hookType, PAD + 24, cy + 32);
+    cy += pillH;
+  }
+
+  // 标题（宋体）
+  x.fillStyle = '#1A1A1A';
+  x.font = '700 62px "Noto Serif SC"';
+  x.textBaseline = 'alphabetic';
+  for (const ln of titleLines) { cy += TITLE_LH; x.fillText(ln, PAD, cy); }
+  cy += 40;
+
+  // 正文（宋体）
+  x.fillStyle = '#5C5C5A';
+  x.font = '400 42px "Noto Serif SC"';
+  for (const ln of bodyLines) { cy += BODY_LH; x.fillText(ln, PAD, cy); }
+  cy += 40;
+
+  // 分隔线 + 来源
+  x.strokeStyle = '#ECEAE3'; x.lineWidth = 2;
+  x.beginPath(); x.moveTo(PAD, cy); x.lineTo(W - PAD, cy); x.stroke();
+  cy += 20;
+  x.fillStyle = '#9A9A97';
+  x.font = '400 28px "Noto Sans SC"';
+  for (const ln of srcLines) { cy += SRC_LH; x.fillText(ln, PAD, cy); }
+
+  // 底部：品牌语 + 链接（贴底排）
+  const fy = H - PAD - 10;
+  x.beginPath();
+  x.arc(PAD + 12, fy - 10, 12, 0, Math.PI * 2);
+  x.fillStyle = '#F59E0B'; x.fill();
+  x.fillStyle = '#5C5C5A';
+  x.font = '500 30px "Noto Sans SC"';
+  x.fillText('新镜 · 每天一张心理学', PAD + 44, fy);
+  x.textAlign = 'right';
+  x.fillStyle = '#B45309';
+  x.font = '400 27px "Noto Sans SC"';
+  x.fillText(SITE_URL, W - PAD, fy);
+  x.textAlign = 'left';
+
+  return c;
+}
+
+function removeSharePanel() {
+  const p = document.querySelector('.share-panel');
+  if (p) { p.classList.remove('is-open'); setTimeout(() => p.remove(), 300); }
+}
+
+async function showSharePanel(tip, dayLabel) {
+  removeBackupPanel(); removeSharePanel();
+  const panel = el(
+    '<div class="backup-panel share-panel" role="dialog" aria-label="保存卡片图片">' +
+      '<div class="backup-panel__title">保存卡片</div>' +
+      '<p class="backup-panel__hint share-panel__generating">正在生成图片…</p>' +
+      '<div class="share-panel__imgwrap"></div>' +
+      '<p class="backup-panel__hint share-panel__tip" hidden>手机上：<b>长按图片</b>即可保存到相册或发给朋友。</p>' +
+      '<div class="backup-panel__actions">' +
+        '<button class="btn-primary" data-act="download" style="margin-top:0;flex:1.4;" hidden>下载图片</button>' +
+        '<button class="btn-ghost" data-act="close" style="flex:1;">关闭</button>' +
+      '</div>' +
+    '</div>'
+  );
+  document.body.appendChild(panel);
+  requestAnimationFrame(() => panel.classList.add('is-open'));
+  panel.querySelector('[data-act="close"]').addEventListener('click', removeSharePanel);
+
+  try {
+    const canvas = await buildCardImage(tip, dayLabel);
+    const dataUrl = canvas.toDataURL('image/png');
+    const img = el('<img class="share-panel__img" alt="卡片分享图" />');
+    img.src = dataUrl;
+    panel.querySelector('.share-panel__imgwrap').appendChild(img);
+    panel.querySelector('.share-panel__generating').hidden = true;
+    panel.querySelector('.share-panel__tip').hidden = false;
+    const dl = panel.querySelector('[data-act="download"]');
+    dl.hidden = false;
+    dl.addEventListener('click', () => {
+      const a = document.createElement('a');
+      a.href = dataUrl;
+      a.download = 'xinjing-' + tip.id + '.png';
+      document.body.appendChild(a); a.click(); a.remove();
+    });
+    track('share', 'save', tip.id);
+  } catch (e) {
+    panel.querySelector('.share-panel__generating').textContent = '图片生成失败了——刷新页面再试一次。';
+    console.error(e);
+  }
+}
+
+function saveCardButton(tip, dayLabel) {
+  const b = el('<button class="save-card-btn">保存这张卡片 ↓</button>');
+  b.addEventListener('click', () => showSharePanel(tip, dayLabel));
+  return b;
+}
+
 /* ---------- 视图：今日 ---------- */
 function viewToday(root) {
   const st = dailyState();
@@ -264,6 +466,7 @@ function viewToday(root) {
   const tip = st.tip;
   const card = el('<article class="daily-card enter" id="daily-card">' + cardHTML(tip) + '</article>');
   root.appendChild(card);
+  root.appendChild(saveCardButton(tip, '第 ' + st.day + ' 天'));
 
   const isDone = st.phase === 'done-today';
   const btn = el('<button class="btn-primary enter-d1' + (isDone ? ' is-lit' : '') + '" id="light-btn">' +
@@ -457,6 +660,7 @@ function viewTip(root, tipId, fromCluster) {
 
   const card = el('<article class="daily-card enter">' + cardHTML(tip) + '</article>');
   root.appendChild(card);
+  root.appendChild(saveCardButton(tip, null));
 
   const read = P.readTips.includes(tip.id);
   const btn = el('<button class="btn-primary enter-d1' + (read ? ' is-lit' : '') + '">' + (read ? '已点亮' : '读完了，点亮它') + '</button>');

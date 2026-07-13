@@ -314,6 +314,26 @@ button { font-family: inherit; }
 .land-panel__actions.show { opacity: 1; }
 .land-panel__actions .btn-ghost { flex: 1; }
 
+/* ---------- 保存卡片按钮 + 分享面板 ---------- */
+.save-card-btn {
+  display: block; margin: 12px auto 0;
+  background: none; border: none; padding: 8px 14px;
+  font-size: 13px; color: var(--text-tertiary);
+  cursor: pointer; border-radius: 10px;
+  transition: color 0.2s ease;
+}
+.save-card-btn:active { transform: scale(0.96); }
+.save-card-btn:focus-visible { outline: 2px solid var(--accent-bright); outline-offset: 2px; }
+@media (hover: hover) { .save-card-btn:hover { color: var(--text-secondary); } }
+
+.share-panel { max-height: calc(100vh - 140px); overflow-y: auto; }
+.share-panel__imgwrap { margin: 4px 0; }
+.share-panel__img {
+  display: block; width: 100%;
+  border: 1px solid var(--border); border-radius: 12px;
+}
+.share-panel__tip b { color: var(--text); font-weight: 700; }
+
 /* ---------- 备份面板（导出/导入进度） ---------- */
 .backup-panel {
   position: fixed; left: 50%; transform: translateX(-50%) translateY(24px);
