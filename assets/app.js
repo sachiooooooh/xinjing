@@ -407,7 +407,22 @@ function showToast(msg) {
   setTimeout(() => { t.classList.remove('is-on'); setTimeout(() => t.remove(), 300); }, 1800);
 }
 
+/* ---------- 面板遮罩：压暗页面区分层级，点遮罩即关闭 ---------- */
+function addPanelScrim(onClose) {
+  removePanelScrim();
+  const s = el('<div class="panel-scrim"></div>');
+  s.addEventListener('click', onClose);
+  document.body.appendChild(s);
+  void s.offsetHeight; // 强制重排，保证过渡触发（不依赖 rAF 时机）
+  s.classList.add('is-on');
+}
+function removePanelScrim() {
+  const s = document.querySelector('.panel-scrim');
+  if (s) { s.classList.remove('is-on'); setTimeout(() => s.remove(), 300); }
+}
+
 function removeSharePanel() {
+  removePanelScrim();
   const p = document.querySelector('.share-panel');
   if (p) { p.classList.remove('is-open'); setTimeout(() => p.remove(), 300); }
 }
@@ -426,6 +441,7 @@ async function showSharePanel(tip, dayLabel) {
       '</div>' +
     '</div>'
   );
+  addPanelScrim(removeSharePanel);
   document.body.appendChild(panel);
   requestAnimationFrame(() => panel.classList.add('is-open'));
   panel.querySelector('[data-act="close"]').addEventListener('click', removeSharePanel);
@@ -777,6 +793,7 @@ function viewMap(root) {
 
 /* ---------- 进度备份：导出/导入（换设备、重装图标前先导出） ---------- */
 function removeBackupPanel() {
+  removePanelScrim();
   const p = document.querySelector('.backup-panel');
   if (p) { p.classList.remove('is-open'); setTimeout(() => p.remove(), 300); }
 }
@@ -817,6 +834,7 @@ function exportProgress() {
     '</div>'
   );
   panel.querySelector('.backup-panel__ta').value = payload;
+  addPanelScrim(removeBackupPanel);
   document.body.appendChild(panel);
   requestAnimationFrame(() => panel.classList.add('is-open'));
 
@@ -847,6 +865,7 @@ function importProgress() {
       '</div>' +
     '</div>'
   );
+  addPanelScrim(removeBackupPanel);
   document.body.appendChild(panel);
   requestAnimationFrame(() => panel.classList.add('is-open'));
 

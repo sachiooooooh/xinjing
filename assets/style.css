@@ -346,6 +346,15 @@ button { font-family: inherit; }
 }
 .toast.is-on { opacity: 1; transform: translateX(-50%) translateY(0); }
 
+/* ---------- 面板遮罩：压暗页面，让浮层跳出来 ---------- */
+.panel-scrim {
+  position: fixed; inset: 0; z-index: 55;
+  background: rgba(26, 26, 26, 0.35);
+  opacity: 0;
+  transition: opacity 0.3s var(--ease-out-soft);
+}
+.panel-scrim.is-on { opacity: 1; }
+
 /* ---------- 备份面板（导出/导入进度） ---------- */
 .backup-panel {
   position: fixed; left: 50%; transform: translateX(-50%) translateY(24px);
