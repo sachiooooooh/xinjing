@@ -16,6 +16,14 @@
 <script>
 var _hmt = _hmt || [];
 (function() {
+  // 只统计真实外部访问：本地预览、局域网调试、带 nocache 参数的访问都不计入
+  var host = location.hostname;
+  var isLocal = host === "localhost" || host === "127.0.0.1" || host === "" ||
+    host === "[::1]" || /\.local$/.test(host) ||
+    /^(10|127)\./.test(host) || /^192\.168\./.test(host) ||
+    /^172\.(1[6-9]|2\d|3[01])\./.test(host);
+  var isDebug = /[?&]nocache/.test(location.search);
+  if (isLocal || isDebug) return;
   var hm = document.createElement("script");
   hm.src = "https://hm.baidu.com/hm.js?5718b119fc466cda9ba5fcb9a1dd25cc";
   var s = document.getElementsByTagName("script")[0];
