@@ -605,10 +605,14 @@ function finishLanding(ch, targetSec, stats, cardEl, btnEl) {
   }, 500);
   if (cardEl) {
     const tipTitle = cardEl.querySelector('.daily-card__title');
+    const isCorr = !!cardEl.querySelector('.tag--correction');          // 复用现成的修正卡标记
+    const subline = isCorr
+      ? '第 ' + P.dayIndex + ' 天 · 你刚修正了一个旧认知'
+      : '第 ' + P.dayIndex + ' 天 · 已收进你的地图';
     const echo = el(
       '<div class="land-echo"><span class="land-echo__dot"></span>' +
       '<span class="land-echo__title">' + (tipTitle ? tipTitle.innerHTML : '') + '</span><br>' +
-      '第 ' + P.dayIndex + ' 天 · 已收进你的地图</div>'
+      subline + '</div>'
     );
     cardEl.parentNode.insertBefore(echo, cardEl);
     cardEl.style.display = 'none';
