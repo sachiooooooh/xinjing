@@ -1,22 +1,37 @@
 /* 新镜 · app.js —— 纯原生 JS，零依赖。
    进度对象（可携带，见 PRODUCT.md §6.5）：
-   localStorage['xinjing.progress'] = { version, litNodes[], readTips[], dayIndex, lastDailyDate, firstSeen, lastSeen } */
+   localStorage['xinjing.progress'] = {
+     version, litNodes[], readTips[], dayIndex, lastDailyDate, firstSeen, lastSeen,
+     tailQueue[],        // 第 FIXED_DAYS 天之后的随机序列，洗一次后固定；导出时一起带走
+     lastDailyTipId      // 今天发的是哪张（随机段无法靠 dayIndex 反推）
+   } */
 
 'use strict';
 
 /* 数据版本号：data/*.json 的 fetch 都带上它做缓存击穿。
    index.html 里 assets 的 ?v= 只管 js/css，不管数据文件——不带这个的话，
    回访用户会吃到浏览器缓存的旧 JSON，等于内容没更新。改数据时同步 bump。 */
-const DATA_VERSION = '0.6.0';
+const DATA_VERSION = '0.7.0';
 const dataUrl = f => f + '?v=' + DATA_VERSION;
 
-/* ---------- 每日正餐序列（编排顺序，可随时重排；开头必须是最强钩子） ---------- */
+/* ---------- 每日正餐序列 ----------
+   混合机制（她定，2026-08-18）：
+   - 第 1~FIXED_DAYS 天：走 DAILY_ORDER 的固定编排，开头必须是最强钩子。
+     固定这一段是为了保住"同一天=同一张卡"这个社交货币（"你到第几天了"），
+     传播窗口恰好就在头几天。
+   - FIXED_DAYS 天之后：每人一条独立的随机序列（洗牌一次后持久化在进度里，
+     不是每天现摇——现摇会重复发同一张卡）。
+   随机段的队列存在 P.tailQueue，属于进度对象的一部分 → 导出/导入自动带走，
+   换设备不会错乱（DESIGN.md §6.5 要求进度自包含可携带）。 */
+const FIXED_DAYS = 20;
+
 const DAILY_ORDER = [
   'tip-002', // 错误记忆 —— 开场即拆记忆
   'tip-032', // 10% 大脑谣言
   'tip-046', // 安慰剂：糖丸也止疼
   'tip-009', // 吊桥效应
   'tip-014', // 测试效应（第一张"有用"卡）
+  'cog-006', // 【认知】鸡尾酒会效应 —— 第 6 天就让第二本书露脸，并带出「注意力的把戏」簇
   'tip-053', // 哈洛恒河猴
   'tip-005', // 月亮错觉
   'tip-036', // 马斯洛金字塔（修正）
@@ -26,6 +41,7 @@ const DAILY_ORDER = [
   'tip-033', // 婴儿全语言耳朵
   'tip-001', // 神奇数字 7
   'tip-048', // 布洛卡失语
+  'cog-010', // 【认知】没听见的话其实都进了脑子（与 cog-006 隔开 10 天，不扎堆）
   'tip-012', // 巴纳姆效应
   'tip-040', // 自我损耗（修正）
   'tip-058', // 损失厌恶
@@ -73,12 +89,10 @@ const DAILY_ORDER = [
   'tip-026', // 暗适应
   'tip-034', // 客体永久性
 
-  /* --- 认知心理学（第二本书）第 61~70 天 ---
-     追加在普心 60 张之后，而非插进中间：老用户的 dayIndex 已指向原序列，
-     中途插入会让他们错位、重看已读卡。记忆/注意两章交错、钩子类型打散。 */
-  'cog-006', // 鸡尾酒会效应
+  /* --- 认知心理学（第二本书）余下 8 条 ---
+     cog-006 / cog-010 已提到前 20 天的固定段；这 8 条落在 FIXED_DAYS 之后的随机池里，
+     会被洗进每个人自己的序列，不再固定压在最末尾。 */
   'cog-001', // 序列位置效应：最先忘的是中间
-  'cog-010', // 没听见的话其实都进了脑子
   'cog-005', // 电话号码走两步就忘
   'cog-008', // 一心二用看两件事像不像
   'cog-002', // 电影画面之间的黑
@@ -199,17 +213,63 @@ function lightTip(tip) {
   return changed;
 }
 
-/* ---------- 每日机制：个人进度制 ---------- */
+/* ---------- 每日机制：个人进度制（前 FIXED_DAYS 天固定，之后随机） ---------- */
+
+/* 是否教材修正型卡：随机段洗牌时用来避免两张修正卡挨着
+   （原本手工编排就刻意打散过，随机不能把这个节奏弄丢） */
+function isCorrectionTip(id) {
+  const t = DB.tipsById[id];
+  return !!t && (t.flags || []).includes('textbook-correction');
+}
+
+/* 随机段队列：只洗一次然后存进进度对象。
+   已读的卡排除在外——她可能是从固定编排时代过来的老进度，
+   不排除就会在随机段重看已经点亮过的卡。 */
+function ensureTailQueue() {
+  if (Array.isArray(P.tailQueue)) return;
+  const pool = DAILY_ORDER.slice(FIXED_DAYS)
+    .filter(id => DB.tipsById[id])          // 卡被删过也不会崩
+    .filter(id => !P.readTips.includes(id));
+  for (let i = pool.length - 1; i > 0; i--) {   // Fisher-Yates
+    const j = Math.floor(Math.random() * (i + 1));
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+  }
+  // 修正卡相邻则往后挪一位，尽量不连着出现
+  for (let i = 1; i < pool.length - 1; i++) {
+    if (isCorrectionTip(pool[i]) && isCorrectionTip(pool[i - 1])) {
+      const k = pool.findIndex((id, n) => n > i && !isCorrectionTip(id));
+      if (k > -1) [pool[i], pool[k]] = [pool[k], pool[i]];
+    }
+  }
+  P.tailQueue = pool;
+  saveProgress();
+}
+
+/* 第 dayIndex 天（0 基）该发哪张卡；null = 发完了 */
+function tipIdForDay(i) {
+  if (i < FIXED_DAYS) return DAILY_ORDER[i] || null;
+  ensureTailQueue();
+  return P.tailQueue[0] || null;
+}
+
 function dailyState() {
   if (P.lastDailyDate === todayStr() && P.dayIndex > 0) {
-    return { phase: 'done-today', tip: DB.tipsById[DAILY_ORDER[P.dayIndex - 1]], day: P.dayIndex };
+    // 今天已看：优先用记下来的那张（随机段无法靠 dayIndex 反推）
+    const lastId = P.lastDailyTipId || DAILY_ORDER[P.dayIndex - 1];
+    return { phase: 'done-today', tip: DB.tipsById[lastId], day: P.dayIndex };
   }
-  if (P.dayIndex >= DAILY_ORDER.length) return { phase: 'all-done', tip: null, day: P.dayIndex };
-  return { phase: 'fresh', tip: DB.tipsById[DAILY_ORDER[P.dayIndex]], day: P.dayIndex + 1 };
+  const id = tipIdForDay(P.dayIndex);
+  if (!id) return { phase: 'all-done', tip: null, day: P.dayIndex };
+  return { phase: 'fresh', tip: DB.tipsById[id], day: P.dayIndex + 1 };
 }
+
 function consumeDaily(tip) {
   lightTip(tip);
+  if (P.dayIndex >= FIXED_DAYS && Array.isArray(P.tailQueue) && P.tailQueue[0] === tip.id) {
+    P.tailQueue.shift();
+  }
   P.dayIndex += 1;
+  P.lastDailyTipId = tip.id;
   P.lastDailyDate = todayStr();
   saveProgress();
   track('daily', 'light', tip.id, P.dayIndex); // 第 N 天的正餐卡被点亮
@@ -986,6 +1046,9 @@ function importProgress() {
       litNodes: parsed.litNodes,
       readTips: parsed.readTips,
       dayIndex: parsed.dayIndex,
+      // 随机段队列跟着一起搬，换设备后序列不错乱；老备份没这个字段就按已读重新洗
+      tailQueue: Array.isArray(parsed.tailQueue) ? parsed.tailQueue : undefined,
+      lastDailyTipId: parsed.lastDailyTipId || null,
       lastDailyDate: parsed.lastDailyDate || null,
       firstSeen: parsed.firstSeen || todayStr(),
       lastSeen: todayStr()
