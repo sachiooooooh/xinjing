@@ -4,6 +4,12 @@
 
 'use strict';
 
+/* 数据版本号：data/*.json 的 fetch 都带上它做缓存击穿。
+   index.html 里 assets 的 ?v= 只管 js/css，不管数据文件——不带这个的话，
+   回访用户会吃到浏览器缓存的旧 JSON，等于内容没更新。改数据时同步 bump。 */
+const DATA_VERSION = '0.6.0';
+const dataUrl = f => f + '?v=' + DATA_VERSION;
+
 /* ---------- 每日正餐序列（编排顺序，可随时重排；开头必须是最强钩子） ---------- */
 const DAILY_ORDER = [
   'tip-002', // 错误记忆 —— 开场即拆记忆
@@ -65,7 +71,21 @@ const DAILY_ORDER = [
   'tip-017', // 间隔效应
   'tip-020', // 框架效应
   'tip-026', // 暗适应
-  'tip-034'  // 客体永久性
+  'tip-034', // 客体永久性
+
+  /* --- 认知心理学（第二本书）第 61~70 天 ---
+     追加在普心 60 张之后，而非插进中间：老用户的 dayIndex 已指向原序列，
+     中途插入会让他们错位、重看已读卡。记忆/注意两章交错、钩子类型打散。 */
+  'cog-006', // 鸡尾酒会效应
+  'cog-001', // 序列位置效应：最先忘的是中间
+  'cog-010', // 没听见的话其实都进了脑子
+  'cog-005', // 电话号码走两步就忘
+  'cog-008', // 一心二用看两件事像不像
+  'cog-002', // 电影画面之间的黑
+  'cog-009', // 熟练后的自动化
+  'cog-003', // 反复背没用，看加工深度
+  'cog-007', // 一次只接通一路
+  'cog-004'  // 记了好几分钟也可能没存进
 ];
 
 const STORE_KEY = 'xinjing.progress';
@@ -78,8 +98,19 @@ function track(category, action, label, value) {
   } catch (e) { /* 忽略 */ }
 }
 
+/* ---------- 书目登记 ----------
+   每本书一棵独立知识树。节点 id 用 idPrefix 命名空间隔离：
+   - 普通心理学 idPrefix='' → 节点 id 保持裸 chNN-sNN（历史数据/进度零改动）
+   - 认知心理学 idPrefix='cog-' → 节点 id 带 cog- 前缀，与普心不冲突
+   litNodes[] 存全 id，天然按前缀区分，无需迁移旧进度。 */
+const DEFAULT_BOOK = 'gp';
+const BOOKS = [
+  { id: 'gp',  name: '普通心理学', idPrefix: '',     file: './data/general-psychology.json' },
+  { id: 'cog', name: '认知心理学', idPrefix: 'cog-', file: './data/cognitive-psychology.json' }
+];
+
 /* ---------- 数据与状态 ---------- */
-let DB = { tips: [], tipsById: {}, clusters: [], tree: [], chapters: [], sectionsById: {} };
+let DB = { tips: [], tipsById: {}, clusters: [], books: [], booksById: {} };
 let P = null; // progress
 
 function todayStr() {
@@ -123,25 +154,38 @@ function sectionLit(sec) {
   if (P.litNodes.includes(sec.id)) return true;
   return sec.conceptIds.some(id => P.litNodes.includes(id));
 }
+/* nodeId → 所属书：按 idPrefix 匹配，命中不了归默认书（普心） */
+function bookOfNode(nodeId) {
+  for (const b of DB.books) {
+    if (b.idPrefix && String(nodeId).indexOf(b.idPrefix) === 0) return b;
+  }
+  return DB.booksById[DEFAULT_BOOK] || DB.books[0] || null;
+}
 function chapterOfNode(nodeId) {
-  // nodeId 可能是节（ch04-s05）或概念（ch06-s04-c01）：前 4 位是章 id
-  const chId = nodeId.slice(0, 4);
-  return DB.chapters.find(c => c.id === chId) || null;
+  // nodeId 可能是节（ch04-s05）或概念（ch06-s04-c01），可能带 cog- 前缀
+  const book = bookOfNode(nodeId);
+  if (!book) return null;
+  const local = nodeId.slice(book.idPrefix.length);   // 去掉书前缀后的裸 id
+  const chId = book.idPrefix + local.slice(0, 4);      // 前 4 位是章号
+  return book.chapters.find(c => c.id === chId) || null;
 }
 function sectionOfNode(nodeId) {
-  if (DB.sectionsById[nodeId]) return DB.sectionsById[nodeId];
-  // 概念 → 所属节：截到 -sNN
-  const m = nodeId.match(/^(ch\d+-s\d+)/);
-  return m ? DB.sectionsById[m[1]] || null : null;
+  const book = bookOfNode(nodeId);
+  if (!book) return null;
+  if (book.sectionsById[nodeId]) return book.sectionsById[nodeId];
+  // 概念 → 所属节：截到 -sNN（在裸 id 上匹配，再补回前缀）
+  const local = nodeId.slice(book.idPrefix.length);
+  const m = local.match(/^(ch\d+-s\d+)/);
+  return m ? book.sectionsById[book.idPrefix + m[1]] || null : null;
 }
 function chapterStats(ch) {
   const total = ch.sections.length;
   const lit = ch.sections.filter(sectionLit).length;
   return { lit, total, pct: total ? Math.round(lit / total * 100) : 0 };
 }
-function globalStats() {
+function bookStats(book) {
   let lit = 0, total = 0;
-  for (const ch of DB.chapters) { const s = chapterStats(ch); lit += s.lit; total += s.total; }
+  for (const ch of book.chapters) { const s = chapterStats(ch); lit += s.lit; total += s.total; }
   return { lit, total, pct: total ? Math.round(lit / total * 100) : 0 };
 }
 function chapterShortName(title) { return title.replace(/^第.+?章\s*/, ''); }
@@ -748,21 +792,47 @@ function viewTip(root, tipId, fromCluster) {
 }
 
 /* ---------- 视图：图谱 ---------- */
+let mapBookId = null; // 当前查看的书（会话内记忆），默认第一本
 function viewMap(root) {
   sessionStorage.setItem('xinjing.mapSeen', String(P.litNodes.length));
   updateTabBadge();
   root.appendChild(el(headerHTML(null)));
-  const g = globalStats();
-  root.appendChild(el('<h1 class="page-title enter">我的图谱</h1>'));
+  const head = el('<div class="map-head enter"></div>');
+  head.appendChild(el('<h1 class="page-title" style="margin:0;">我的图谱</h1>'));
+  const backupBtn = el('<button class="map-backup" aria-label="备份进度" title="备份进度">' +
+    '<svg viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg><span>备份</span></button>');
+  backupBtn.addEventListener('click', showBackupMenu);
+  head.appendChild(backupBtn);
+  root.appendChild(head);
+
+  const books = DB.books;
+  if (!mapBookId || !DB.booksById[mapBookId]) mapBookId = books[0] ? books[0].id : null;
+
+  // 书切换器：≥2 本才显示
+  if (books.length > 1) {
+    const sw = el('<div class="book-switch enter" role="tablist" aria-label="选择书"></div>');
+    books.forEach(b => {
+      const btn = el('<button class="book-switch__item' + (b.id === mapBookId ? ' is-active' : '') +
+        '" role="tab" aria-selected="' + (b.id === mapBookId) + '" data-book="' + b.id + '">' + esc(b.name) + '</button>');
+      btn.addEventListener('click', () => { if (mapBookId !== b.id) { mapBookId = b.id; render(); } });
+      sw.appendChild(btn);
+    });
+    root.appendChild(sw);
+  }
+
+  const book = DB.booksById[mapBookId];
+  if (!book) { root.appendChild(el('<p class="map-empty">还没有可显示的图谱。</p>')); return; }
+  const g = bookStats(book);
+
   root.appendChild(el(
     '<div class="map-stats enter"><span class="map-stats__big">' + g.lit + '<span class="of"> / ' + g.total + '</span></span>' +
     '<span class="map-stats__pct">' + g.pct + '%</span></div>' +
-    '<div class="map-stats__label enter">已点亮的知识点 · 普通心理学</div>'
+    '<div class="map-stats__label enter">已点亮的知识点 · ' + esc(book.name) + '</div>'
   ));
   root.appendChild(el('<div class="progress enter-d1"><div class="progress__fill" style="width:' + g.pct + '%"></div></div>'));
 
   let lastPart = '';
-  for (const ch of DB.chapters) {
+  for (const ch of book.chapters) {
     if (ch.part !== lastPart) {
       lastPart = ch.part;
       root.appendChild(el('<div class="map-part">' + esc(ch.part) + '</div>'));
@@ -779,20 +849,12 @@ function viewMap(root) {
       '</div>'
     ));
   }
-  if (g.lit === 0) {
+  if (book.chapters.length === 0) {
+    root.appendChild(el('<p class="map-empty">这本书的图谱还在搭建中。</p>'));
+  } else if (g.lit === 0) {
     root.appendChild(el('<p class="map-empty">地图还没亮——从今天这张开始。</p>'));
   }
 
-  root.appendChild(el('<div class="map-part" style="margin-top:32px;">备份</div>'));
-  const backupRow = el('<div style="display:flex;gap:10px;margin-top:8px;"></div>');
-  const exportBtn = el('<button class="btn-ghost" style="flex:1;">导出进度</button>');
-  const importBtn = el('<button class="btn-ghost" style="flex:1;">导入进度</button>');
-  exportBtn.addEventListener('click', exportProgress);
-  importBtn.addEventListener('click', () => { importProgress(); });
-  backupRow.appendChild(exportBtn);
-  backupRow.appendChild(importBtn);
-  root.appendChild(backupRow);
-  root.appendChild(el('<p style="font-size:12px;color:var(--text-tertiary);margin-top:8px;line-height:1.6;">换设备、重新添加到主屏幕前，先导出一份存到备忘录里。</p>'));
 }
 
 /* ---------- 进度备份：导出/导入（换设备、重装图标前先导出） ---------- */
@@ -800,6 +862,34 @@ function removeBackupPanel() {
   removePanelScrim();
   const p = document.querySelector('.backup-panel');
   if (p) { p.classList.remove('is-open'); setTimeout(() => p.remove(), 300); }
+}
+
+/* 备份入口菜单：图谱页顶部小按钮点开，导出/导入都在这里。
+   进度是全部书共用的一份存档，故此入口不随书切换，独立于分书图谱。 */
+function removeBackupMenu() {
+  removePanelScrim();
+  const p = document.querySelector('.backup-menu');
+  if (p) { p.classList.remove('is-open'); setTimeout(() => p.remove(), 300); }
+}
+function showBackupMenu() {
+  removeBackupMenu();
+  const panel = el(
+    '<div class="backup-panel backup-menu" role="dialog" aria-label="备份进度">' +
+      '<div class="backup-panel__title">备份进度</div>' +
+      '<p class="backup-panel__hint">进度是所有书共用的一份存档（普通心理学 + 认知心理学）。换设备、重新添加到主屏幕前，先导出一份存到备忘录里。</p>' +
+      '<div class="backup-panel__actions">' +
+        '<button class="btn-primary" data-act="export" style="margin-top:0;flex:1;">导出进度</button>' +
+        '<button class="btn-ghost" data-act="import" style="flex:1;">导入进度</button>' +
+      '</div>' +
+      '<button class="btn-ghost" data-act="close" style="width:100%;margin-top:10px;">关闭</button>' +
+    '</div>'
+  );
+  addPanelScrim(removeBackupMenu);
+  document.body.appendChild(panel);
+  requestAnimationFrame(() => panel.classList.add('is-open'));
+  panel.querySelector('[data-act="export"]').addEventListener('click', () => { removeBackupMenu(); exportProgress(); });
+  panel.querySelector('[data-act="import"]').addEventListener('click', () => { removeBackupMenu(); importProgress(); });
+  panel.querySelector('[data-act="close"]').addEventListener('click', removeBackupMenu);
 }
 
 function copyText(text, onDone) {
@@ -965,17 +1055,37 @@ function render() {
 
 /* ---------- 启动 ---------- */
 async function boot() {
-  const [tipsJson, treeJson, clustersJson] = await Promise.all([
-    fetch('./data/tips.json').then(r => r.json()),
-    fetch('./data/general-psychology.json').then(r => r.json()),
-    fetch('./data/clusters.json').then(r => r.json())
+  const [tipsJson, clustersJson] = await Promise.all([
+    fetch(dataUrl('./data/tips.json')).then(r => r.json()),
+    fetch(dataUrl('./data/clusters.json')).then(r => r.json())
   ]);
   DB.tips = tipsJson.tips;
   DB.tips.forEach(t => { DB.tipsById[t.id] = t; });
   DB.clusters = clustersJson.clusters;
-  const parsed = parseTree(treeJson);
-  DB.chapters = parsed.chapters;
-  DB.sectionsById = parsed.sectionsById;
+
+  // 认知心理学 tips：分文件维护，合并进同一 DB.tips 池 → 逛逛(按簇)/浏览点亮/落点(cog- 前缀落认知图谱)全自动跨书生效。
+  // cog-001~010 已于 2026-08-18 转 reviewed 上线；未审稿一律不合并，避免 draft 漏进产品。
+  try {
+    const cogTipsJson = await fetch(dataUrl('./data/cognitive-tips.json')).then(r => r.json());
+    (cogTipsJson.tips || [])
+      .filter(t => t.status === 'reviewed')
+      .forEach(t => { DB.tips.push(t); DB.tipsById[t.id] = t; });
+  } catch (e) { console.warn('[新镜] 认知 tips 未加载（可忽略）', e); }
+
+  // 逐本加载知识树；某本缺失/损坏只跳过它，不拖垮其余（普心必须在，否则报错）
+  DB.books = [];
+  DB.booksById = {};
+  for (const meta of BOOKS) {
+    try {
+      const treeJson = await fetch(dataUrl(meta.file)).then(r => r.json());
+      const parsed = parseTree(treeJson);
+      const book = { id: meta.id, name: meta.name, idPrefix: meta.idPrefix,
+                     chapters: parsed.chapters, sectionsById: parsed.sectionsById };
+      DB.books.push(book);
+      DB.booksById[book.id] = book;
+    } catch (e) { console.warn('[新镜] 书加载失败，已跳过：' + meta.id, e); }
+  }
+  if (!DB.booksById[DEFAULT_BOOK]) throw new Error('默认书（' + DEFAULT_BOOK + '）加载失败');
 
   P = loadProgress();
   saveProgress();

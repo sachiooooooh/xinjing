@@ -59,6 +59,13 @@
       "tagline": "人类的出厂设置，比你想象的强大",
       "icon": "ti-baby-carriage",
       "order": 8
+    },
+    {
+      "id": "attention-tricks",
+      "name": "注意力的把戏",
+      "tagline": "你以为能眼观六路，其实大脑只开了一道窄门",
+      "icon": "ti-filter",
+      "order": 9
     }
   ]
 }

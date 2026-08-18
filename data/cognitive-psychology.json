@@ -1,0 +1,113 @@
+{
+  "meta": {
+    "bookId": "cog",
+    "subject": "认知心理学",
+    "source": "王甦、汪安圣《认知心理学》（重排本），北京大学出版社，1992.4（2006.8重排），ISBN 7-301-01810-X",
+    "status": "verified",
+    "note": "编/章/节级目录已依据用户提供的该书 PDF 目录页（原书第6-7页）逐字录入，status=verified。全书 11 章 40 节，平铺无「编」。概念层暂缺，随 tips 增长长出（同普心策略）。个别节标题排版含分隔（如『表象 知觉 表征』『HAM ELINOR』），已按语义补连接词，若与纸书标点有出入以纸书为准。节点 id 带 cog- 前缀。本书暂无 tips，未进 DAILY_ORDER。",
+    "draftDate": "2026-07-21",
+    "lastUpdate": "2026-07-22"
+  },
+  "tree": [
+    {
+      "id": "cog-main", "title": "", "type": "part", "status": "verified",
+      "children": [
+        {
+          "id": "cog-ch01", "title": "第一章 绪论", "type": "chapter", "status": "verified",
+          "children": [
+            { "id": "cog-ch01-s01", "title": "认知心理学的对象", "type": "section", "status": "verified" },
+            { "id": "cog-ch01-s02", "title": "认知心理学的方法", "type": "section", "status": "verified" },
+            { "id": "cog-ch01-s03", "title": "认知心理学的兴起及影响", "type": "section", "status": "verified" },
+            { "id": "cog-ch01-s04", "title": "关于认知心理学的争论", "type": "section", "status": "verified" }
+          ]
+        },
+        {
+          "id": "cog-ch02", "title": "第二章 知觉", "type": "chapter", "status": "verified",
+          "children": [
+            { "id": "cog-ch02-s01", "title": "知觉信息与知觉过程", "type": "section", "status": "verified" },
+            { "id": "cog-ch02-s02", "title": "模式识别", "type": "section", "status": "verified" },
+            { "id": "cog-ch02-s03", "title": "结构优势效应", "type": "section", "status": "verified" }
+          ]
+        },
+        {
+          "id": "cog-ch03", "title": "第三章 注意", "type": "chapter", "status": "verified",
+          "children": [
+            { "id": "cog-ch03-s01", "title": "过滤器模型和衰减模型", "type": "section", "status": "verified" },
+            { "id": "cog-ch03-s02", "title": "反应选择模型与知觉选择模型", "type": "section", "status": "verified" },
+            { "id": "cog-ch03-s03", "title": "中枢能量理论", "type": "section", "status": "verified" },
+            { "id": "cog-ch03-s04", "title": "控制性加工与自动加工", "type": "section", "status": "verified" }
+          ]
+        },
+        {
+          "id": "cog-ch04", "title": "第四章 记忆结构", "type": "chapter", "status": "verified",
+          "children": [
+            { "id": "cog-ch04-s01", "title": "两种记忆说", "type": "section", "status": "verified" },
+            { "id": "cog-ch04-s02", "title": "感觉记忆", "type": "section", "status": "verified" },
+            { "id": "cog-ch04-s03", "title": "记忆信息三级加工模型", "type": "section", "status": "verified" },
+            { "id": "cog-ch04-s04", "title": "加工水平说", "type": "section", "status": "verified" }
+          ]
+        },
+        {
+          "id": "cog-ch05", "title": "第五章 短时记忆", "type": "chapter", "status": "verified",
+          "children": [
+            { "id": "cog-ch05-s01", "title": "短时记忆容量", "type": "section", "status": "verified" },
+            { "id": "cog-ch05-s02", "title": "短时记忆信息编码", "type": "section", "status": "verified" },
+            { "id": "cog-ch05-s03", "title": "短时记忆信息提取", "type": "section", "status": "verified" },
+            { "id": "cog-ch05-s04", "title": "短时记忆中的遗忘", "type": "section", "status": "verified" }
+          ]
+        },
+        {
+          "id": "cog-ch06", "title": "第六章 长时记忆", "type": "chapter", "status": "verified",
+          "children": [
+            { "id": "cog-ch06-s01", "title": "长时记忆的类型", "type": "section", "status": "verified" },
+            { "id": "cog-ch06-s02", "title": "层次网络模型和激活扩散模型", "type": "section", "status": "verified" },
+            { "id": "cog-ch06-s03", "title": "集理论模型和特征比较模型", "type": "section", "status": "verified" },
+            { "id": "cog-ch06-s04", "title": "HAM 与 ELINOR", "type": "section", "status": "verified" }
+          ]
+        },
+        {
+          "id": "cog-ch07", "title": "第七章 表象", "type": "chapter", "status": "verified",
+          "children": [
+            { "id": "cog-ch07-s01", "title": "表象、知觉、表征", "type": "section", "status": "verified" },
+            { "id": "cog-ch07-s02", "title": "心理旋转", "type": "section", "status": "verified" },
+            { "id": "cog-ch07-s03", "title": "心理扫描", "type": "section", "status": "verified" },
+            { "id": "cog-ch07-s04", "title": "表象的功能", "type": "section", "status": "verified" }
+          ]
+        },
+        {
+          "id": "cog-ch08", "title": "第八章 概念", "type": "chapter", "status": "verified",
+          "children": [
+            { "id": "cog-ch08-s01", "title": "概念形成", "type": "section", "status": "verified" },
+            { "id": "cog-ch08-s02", "title": "概念结构", "type": "section", "status": "verified" }
+          ]
+        },
+        {
+          "id": "cog-ch09", "title": "第九章 问题解决", "type": "chapter", "status": "verified",
+          "children": [
+            { "id": "cog-ch09-s01", "title": "问题与问题解决", "type": "section", "status": "verified" },
+            { "id": "cog-ch09-s02", "title": "问题解决过程", "type": "section", "status": "verified" },
+            { "id": "cog-ch09-s03", "title": "问题解决的策略", "type": "section", "status": "verified" },
+            { "id": "cog-ch09-s04", "title": "问题解决的计算机模拟", "type": "section", "status": "verified" }
+          ]
+        },
+        {
+          "id": "cog-ch10", "title": "第十章 推理", "type": "chapter", "status": "verified",
+          "children": [
+            { "id": "cog-ch10-s01", "title": "三段论推理", "type": "section", "status": "verified" },
+            { "id": "cog-ch10-s02", "title": "线性三段论", "type": "section", "status": "verified" },
+            { "id": "cog-ch10-s03", "title": "命题检验", "type": "section", "status": "verified" },
+            { "id": "cog-ch10-s04", "title": "概率推理", "type": "section", "status": "verified" }
+          ]
+        },
+        {
+          "id": "cog-ch11", "title": "第十一章 言语", "type": "chapter", "status": "verified",
+          "children": [
+            { "id": "cog-ch11-s01", "title": "语言的结构", "type": "section", "status": "verified" },
+            { "id": "cog-ch11-s02", "title": "言语的理解和产出", "type": "section", "status": "verified" },
+            { "id": "cog-ch11-s03", "title": "双语", "type": "section", "status": "verified" }
+          ]
+        }
+      ]
+    }
+  ]
+}

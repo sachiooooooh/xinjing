@@ -10,3 +10,6 @@ VISION.md
 .claude/
 .vercelignore
 .DS_Store
+
+# 版权教材 PDF 绝不进公开仓库
+*.pdf
