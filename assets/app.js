@@ -11,7 +11,7 @@
 /* 数据版本号：data/*.json 的 fetch 都带上它做缓存击穿。
    index.html 里 assets 的 ?v= 只管 js/css，不管数据文件——不带这个的话，
    回访用户会吃到浏览器缓存的旧 JSON，等于内容没更新。改数据时同步 bump。 */
-const DATA_VERSION = '0.7.1';
+const DATA_VERSION = '0.7.2';
 const dataUrl = f => f + '?v=' + DATA_VERSION;
 
 /* ---------- 每日正餐序列 ----------
@@ -313,21 +313,41 @@ function headerHTML(day) {
 
 /* ---------- 添加到主屏幕引导 ---------- */
 const ADDHOME_KEY = 'xinjing.addhome.dismissed';
+const ADDHOME_INSTALLED_KEY = 'xinjing.addhome.installed';   // 只上报一次"确实加成功了"
 function isStandalone() {
   return window.navigator.standalone === true ||
     (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
 }
-function addHomeTip() {
+/* 环境标签：埋点用它区分哪条加桌面路径走得通（微信 iOS 最曲折，需要先跳 Safari） */
+function platformTag() {
   const ua = navigator.userAgent;
   const wechat = /micromessenger/i.test(ua);
   const ios = /iphone|ipad|ipod/i.test(ua) ||
     (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   const android = /android/i.test(ua);
-  if (wechat && ios) return '点右上角 ··· → 选「在 Safari 中打开」，再点底部分享 → 「添加到主屏幕」。';
-  if (wechat && android) return '点右上角 ··· → 选「添加到桌面」，新镜就住进桌面了。';
-  if (ios) return '点底部的分享按钮 → 选「添加到主屏幕」，新镜就住进桌面了。';
-  if (android) return '点右上角菜单 ⋮ → 选「添加到主屏幕 / 安装」，新镜就住进桌面了。';
-  return '把本页加到主屏幕或收藏，明天更好找。';
+  if (wechat && ios) return 'wechat-ios';
+  if (wechat && android) return 'wechat-android';
+  if (ios) return 'ios';
+  if (android) return 'android';
+  return 'desktop';
+}
+function addHomeTip() {
+  switch (platformTag()) {
+    case 'wechat-ios':     return '点右上角 ··· → 选「在 Safari 中打开」，再点底部分享 → 「添加到主屏幕」。';
+    case 'wechat-android': return '点右上角 ··· → 选「添加到桌面」，新镜就住进桌面了。';
+    case 'ios':            return '点底部的分享按钮 → 选「添加到主屏幕」，新镜就住进桌面了。';
+    case 'android':        return '点右上角菜单 ⋮ → 选「添加到主屏幕 / 安装」，新镜就住进桌面了。';
+    default:               return '把本页加到主屏幕或收藏，明天更好找。';
+  }
+}
+/* 加桌面这条路径没法监听系统那一下点击，所以埋成三段漏斗：
+   show（提示条露出）→ dismiss（主动关掉）→ installed（之后真从桌面图标启动过）。
+   installed 是唯一能证明"有人真加了"的信号。 */
+function trackAddHomeInstalled() {
+  if (!isStandalone()) return;
+  if (localStorage.getItem(ADDHOME_INSTALLED_KEY)) return;
+  localStorage.setItem(ADDHOME_INSTALLED_KEY, '1');
+  track('addhome', 'installed', platformTag());
 }
 function maybeAddHomeHint(root) {
   if (isStandalone()) return;                       // 已在桌面全屏模式，不打扰
@@ -343,11 +363,13 @@ function maybeAddHomeHint(root) {
   );
   hint.querySelector('.addhome__close').addEventListener('click', () => {
     localStorage.setItem(ADDHOME_KEY, '1');
+    track('addhome', 'dismiss', platformTag(), P.dayIndex);
     hint.style.height = hint.offsetHeight + 'px';
     requestAnimationFrame(() => hint.classList.add('addhome--out'));
     setTimeout(() => hint.remove(), 260);
   });
   root.appendChild(hint);
+  track('addhome', 'show', platformTag(), P.dayIndex);
 }
 
 /* ---------- 分享图：把卡片画成 3:4 图片（canvas，零依赖） ---------- */
@@ -1151,6 +1173,8 @@ async function boot() {
 
   P = loadProgress();
   saveProgress();
+
+  trackAddHomeInstalled();   // 这次是从桌面图标启动的吗？是且没报过就报一次
 
   buildTabbar();
   window.addEventListener('hashchange', render);
